@@ -2,6 +2,11 @@ package com.ga.reservation_service.service;
 
 import com.ga.reservation_service.model.Payment;
 import com.ga.reservation_service.repository.PaymentRepository;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -10,9 +15,14 @@ import java.time.LocalDateTime;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final MongoTemplate mongoTemplate;
 
-    public PaymentService(PaymentRepository paymentRepository) {
+    public PaymentService(
+            PaymentRepository paymentRepository,
+            MongoTemplate mongoTemplate) {
+
         this.paymentRepository = paymentRepository;
+        this.mongoTemplate = mongoTemplate;
     }
 
     public Payment createPayment(
@@ -34,17 +44,29 @@ public class PaymentService {
 
     public Payment confirmPayment(String paymentId) {
 
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+        Query query = new Query(
+                Criteria.where("id").is(paymentId)
+                        .and("status").is(Payment.PaymentStatus.PENDING)
+        );
 
-        if (payment.getStatus() != Payment.PaymentStatus.PENDING) {
-            throw new RuntimeException("Payment is not pending");
+        Update update = new Update()
+                .set("status", Payment.PaymentStatus.SUCCESSFUL)
+                .set("paidAt", LocalDateTime.now());
+
+        Payment confirmedPayment = mongoTemplate.findAndModify(
+                query,
+                update,
+                FindAndModifyOptions.options().returnNew(true),
+                Payment.class
+        );
+
+        if (confirmedPayment == null) {
+            throw new RuntimeException(
+                    "Payment cannot be confirmed. It may already have been processed."
+            );
         }
 
-        payment.setStatus(Payment.PaymentStatus.SUCCESSFUL);
-        payment.setPaidAt(LocalDateTime.now());
-
-        return paymentRepository.save(payment);
+        return confirmedPayment;
     }
 
     public Payment getPaymentByReservation(String reservationId) {
