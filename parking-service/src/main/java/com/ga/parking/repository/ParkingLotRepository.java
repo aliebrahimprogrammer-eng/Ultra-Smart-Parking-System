@@ -1,4 +1,3 @@
-
 package com.ga.parking.repository;
 
 import com.ga.parking.model.ParkingLot;
@@ -12,4 +11,6 @@ public interface ParkingLotRepository
     boolean existsByName(String name);
 
     Optional<ParkingLot> findByName(String name);
+
+    boolean existsByNameAndIdNot(String name, String id);
 }

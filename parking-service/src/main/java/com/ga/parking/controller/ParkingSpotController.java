@@ -159,4 +159,42 @@ public class ParkingSpotController {
                 parkingSpotService.cancelReservation(spotId)
         );
     }
+
+    @PutMapping("/{spotId}")
+    @Operation(
+            summary = "Update a parking spot",
+            description = "Updates the parking lot association, spot number, and spot type. The current status is preserved and cannot be changed through this endpoint."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Parking spot updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid parking spot data"),
+            @ApiResponse(responseCode = "404", description = "Parking spot or parking lot not found"),
+            @ApiResponse(responseCode = "409", description = "Spot number already exists in the selected parking lot")
+    })
+    public ResponseEntity<ParkingSpot> updateSpot(
+            @PathVariable String spotId,
+            @Valid @RequestBody ParkingSpot parkingSpot) {
+
+        return ResponseEntity.ok(
+                parkingSpotService.updateSpot(spotId, parkingSpot)
+        );
+    }
+
+    @DeleteMapping("/{spotId}")
+    @Operation(
+            summary = "Delete a parking spot",
+            description = "Deletes a parking spot only when its current status is AVAILABLE. RESERVED and OCCUPIED spots cannot be deleted."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Parking spot deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Parking spot not found"),
+            @ApiResponse(responseCode = "409", description = "Cannot delete a RESERVED or OCCUPIED parking spot")
+    })
+    public ResponseEntity<Void> deleteSpot(
+            @PathVariable String spotId) {
+
+        parkingSpotService.deleteSpot(spotId);
+
+        return ResponseEntity.noContent().build();
+    }
 }
