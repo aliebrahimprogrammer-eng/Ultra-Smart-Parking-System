@@ -1,23 +1,18 @@
 package com.ga.reservation_service.dto.request;
 
 import com.ga.reservation_service.model.Payment;
+import jakarta.validation.constraints.Positive;
 
 public class ReservationRequest {
 
-    private String userId;
     private String vehicleId;
     private String spotId;
     private String lotId;
+
+    @Positive(message = "Amount must be greater than zero")
     private double amount;
+
     private Payment.PaymentMethod method;
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
 
     public String getVehicleId() {
         return vehicleId;

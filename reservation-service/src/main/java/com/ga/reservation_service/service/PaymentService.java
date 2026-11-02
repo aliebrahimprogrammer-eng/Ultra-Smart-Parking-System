@@ -7,7 +7,9 @@ import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -61,12 +63,19 @@ public class PaymentService {
         );
 
         if (confirmedPayment == null) {
-            throw new RuntimeException(
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
                     "Payment cannot be confirmed. It may already have been processed."
             );
         }
 
         return confirmedPayment;
+    }
+
+    public Payment getPaymentById(String paymentId) {
+
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("Payment not found"));
     }
 
     public Payment getPaymentByReservation(String reservationId) {
