@@ -110,4 +110,56 @@ public class ParkingSpotService {
             lock.unlock();
         }
     }
+
+
+    // Mark a reserved spot as occupied
+    public ParkingSpot occupySpot(String spotId) {
+
+        ReentrantLock lock = spotLockManager.getLock(spotId);
+
+        lock.lock();
+
+        try {
+            ParkingSpot occupiedSpot =
+                    parkingSpotRepository.occupyAtomically(spotId);
+
+            if (occupiedSpot == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Spot must be reserved before it can be occupied"
+                );
+            }
+
+            return occupiedSpot;
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // Release an occupied spot
+    public ParkingSpot releaseSpot(String spotId) {
+
+        ReentrantLock lock = spotLockManager.getLock(spotId);
+
+        lock.lock();
+
+        try {
+            ParkingSpot releasedSpot =
+                    parkingSpotRepository.releaseAtomically(spotId);
+
+            if (releasedSpot == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Spot must be occupied before it can be released"
+                );
+            }
+
+            return releasedSpot;
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
 }

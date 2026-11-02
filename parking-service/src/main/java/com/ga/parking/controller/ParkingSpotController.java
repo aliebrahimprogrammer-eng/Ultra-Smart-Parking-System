@@ -58,4 +58,26 @@ public class ParkingSpotController {
                 parkingSpotService.reserveSpot(spotId)
         );
     }
+
+
+    // Mark a reserved spot as occupied
+    @PatchMapping("/{spotId}/occupy")
+    public ResponseEntity<ParkingSpot> occupySpot(
+            @PathVariable String spotId) {
+
+        return ResponseEntity.ok(
+                parkingSpotService.occupySpot(spotId)
+        );
+    }
+
+    // Release an occupied spot
+    @PatchMapping("/{spotId}/release")
+    public ResponseEntity<ParkingSpot> releaseSpot(
+            @PathVariable String spotId) {
+
+        return ResponseEntity.ok(
+                parkingSpotService.releaseSpot(spotId)
+        );
+    }
+
 }
