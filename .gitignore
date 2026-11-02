@@ -1,2 +1,31 @@
-.env
+# IntelliJ IDEA
 .idea/
+*.iml
+out/
+
+# Maven
+**/target/
+
+# Compiled Java files
+*.class
+
+# Logs
+*.log
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.swp
+
+# Spring Boot generated files
+spring-boot-devtools.properties
+

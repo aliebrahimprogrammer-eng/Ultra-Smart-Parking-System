@@ -1,4 +1,3 @@
-
 package com.ga.parking.repository;
 
 import com.ga.parking.model.ParkingSpot;
@@ -22,4 +21,14 @@ public interface ParkingSpotRepository
             String lotId,
             String spotNumber
     );
+
+    boolean existsByLotIdAndSpotNumberAndIdNot(
+            String lotId,
+            String spotNumber,
+            String id
+    );
+
+    boolean existsByLotId(String lotId);
+
+    long deleteByIdAndStatus(String id, SpotStatus status);
 }

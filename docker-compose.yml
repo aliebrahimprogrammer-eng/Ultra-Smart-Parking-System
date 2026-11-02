@@ -1,0 +1,36 @@
+services:
+  auth-service:
+    build: ./auth-service
+    env_file: .env
+    environment:
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+
+  parking-service:
+    build: ./parking-service
+    env_file: .env
+    environment:
+      SERVER_PORT: 8082
+    ports:
+      - "8082:8082"
+
+  reservation-service:
+    build: ./reservation-service
+    env_file: .env
+    environment:
+      SERVER_PORT: 8083
+      PARKING_SERVICE_URL: http://parking-service:8082
+    ports:
+      - "8083:8083"
+    depends_on:
+      - parking-service
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - auth-service
+      - parking-service
+      - reservation-service
