@@ -1,14 +1,15 @@
+
 package com.ga.parking.repository;
 
 import com.ga.parking.model.ParkingSpot;
 import com.ga.parking.model.enums.SpotStatus;
-
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 
 public interface ParkingSpotRepository
-        extends MongoRepository<ParkingSpot, String> {
+        extends MongoRepository<ParkingSpot, String>,
+        ParkingSpotAtomicRepository {
 
     List<ParkingSpot> findByLotId(String lotId);
 
