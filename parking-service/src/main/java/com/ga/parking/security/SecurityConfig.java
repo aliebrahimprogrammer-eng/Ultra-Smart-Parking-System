@@ -54,9 +54,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/lots", "/spots")
                         .hasRole("ADMIN")
 
-                        // Only users book spots
+                        // Users book through reservation-service, never directly
                         .requestMatchers(HttpMethod.PATCH, "/spots/*/reserve")
-                        .hasRole("USER")
+                        .hasRole("SERVICE")
 
                         // All other endpoints require JWT
                         .anyRequest()

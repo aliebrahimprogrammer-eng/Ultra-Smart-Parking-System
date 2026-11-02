@@ -4,8 +4,10 @@ import com.ga.reservation_service.model.Payment;
 import com.ga.reservation_service.model.Reservation;
 import com.ga.reservation_service.repository.PaymentRepository;
 import com.ga.reservation_service.repository.ReservationRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,17 +25,20 @@ public class ReservationService {
     private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
     private final MongoTemplate mongoTemplate;
+    private final ParkingClient parkingClient;
 
     public ReservationService(
             ReservationRepository reservationRepository,
             PaymentRepository paymentRepository,
             PaymentService paymentService,
-            MongoTemplate mongoTemplate) {
+            MongoTemplate mongoTemplate,
+            ParkingClient parkingClient) {
 
         this.reservationRepository = reservationRepository;
         this.paymentRepository = paymentRepository;
         this.paymentService = paymentService;
         this.mongoTemplate = mongoTemplate;
+        this.parkingClient = parkingClient;
     }
 
     public Reservation createReservation(
@@ -43,6 +48,9 @@ public class ReservationService {
             String lotId,
             double amount,
             Payment.PaymentMethod method) {
+
+        // Throws a 409 if someone else already holds the spot
+        parkingClient.reserveSpot(spotId);
 
         Reservation reservation = new Reservation();
 
@@ -57,16 +65,22 @@ public class ReservationService {
         reservation.setStatus(Reservation.ReservationStatus.PENDING);
         reservation.setTotalFee(amount);
 
-        Reservation savedReservation = reservationRepository.save(reservation);
+        try {
+            Reservation savedReservation = reservationRepository.save(reservation);
 
-        paymentService.createPayment(
-                savedReservation.getId(),
-                userId,
-                amount,
-                method
-        );
+            paymentService.createPayment(
+                    savedReservation.getId(),
+                    userId,
+                    amount,
+                    method
+            );
 
-        return savedReservation;
+            return savedReservation;
+
+        } catch (RuntimeException e) {
+            parkingClient.freeSpot(spotId);
+            throw e;
+        }
     }
 
     public Reservation confirmReservationPayment(String reservationId) {
@@ -96,7 +110,8 @@ public class ReservationService {
         );
 
         if (confirmedReservation == null) {
-            throw new RuntimeException(
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
                     "Reservation cannot be confirmed. It may have expired or already been processed."
             );
         }
@@ -139,10 +154,13 @@ public class ReservationService {
         );
 
         if (cancelledReservation == null) {
-            throw new RuntimeException(
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
                     "Reservation cannot be cancelled. It may already be active, completed, expired or cancelled."
             );
         }
+
+        parkingClient.freeSpot(cancelledReservation.getSpotId());
 
         return cancelledReservation;
     }
@@ -160,6 +178,11 @@ public class ReservationService {
         Update update = new Update()
                 .set("status", Reservation.ReservationStatus.EXPIRED);
 
-        mongoTemplate.updateMulti(query, update, Reservation.class);
+        // One at a time, so each expired reservation frees its spot exactly once
+        Reservation expiredReservation;
+
+        while ((expiredReservation = mongoTemplate.findAndModify(query, update, Reservation.class)) != null) {
+            parkingClient.freeSpot(expiredReservation.getSpotId());
+        }
     }
 }
