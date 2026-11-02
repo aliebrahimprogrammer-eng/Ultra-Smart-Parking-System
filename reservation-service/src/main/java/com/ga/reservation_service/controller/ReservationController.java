@@ -3,6 +3,7 @@ package com.ga.reservation_service.controller;
 import com.ga.reservation_service.dto.request.ReservationRequest;
 import com.ga.reservation_service.model.Reservation;
 import com.ga.reservation_service.service.ReservationService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public class ReservationController {
         this.reservationService = reservationService;
     }
 
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     @PostMapping
     public Reservation createReservation(
             @RequestBody ReservationRequest request) {
@@ -32,22 +34,26 @@ public class ReservationController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<Reservation> getAllReservations() {
         return reservationService.getAllReservations();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/user/{userId}")
     public List<Reservation> getUserReservations(
             @PathVariable String userId) {
         return reservationService.getUserReservations(userId);
     }
 
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     @GetMapping("/{id}")
     public Reservation getReservationById(@PathVariable String id) {
         return reservationService.getReservationById(id);
     }
 
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     @PutMapping("/{id}/cancel")
     public Reservation cancelReservation(@PathVariable String id) {
         return reservationService.cancelReservation(id);

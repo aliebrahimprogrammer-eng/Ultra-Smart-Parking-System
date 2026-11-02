@@ -4,6 +4,7 @@ import com.ga.reservation_service.model.Payment;
 import com.ga.reservation_service.model.Reservation;
 import com.ga.reservation_service.service.PaymentService;
 import com.ga.reservation_service.service.ReservationService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,6 +23,7 @@ public class PaymentController {
         this.reservationService = reservationService;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{paymentId}/confirm")
     public Reservation confirmPayment(@PathVariable String paymentId) {
 
@@ -32,6 +34,7 @@ public class PaymentController {
         );
     }
 
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
     @GetMapping("/reservation/{reservationId}")
     public Payment getPaymentByReservation(
             @PathVariable String reservationId) {
