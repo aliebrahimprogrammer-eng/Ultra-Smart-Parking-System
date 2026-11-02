@@ -80,5 +80,14 @@ public class ParkingSpotController {
                 parkingSpotService.releaseSpot(spotId)
         );
     }
+//Cancel Reservation
+    @PatchMapping("/{spotId}/cancel-reservation")
+    public ResponseEntity<ParkingSpot> cancelReservation(
+            @PathVariable String spotId
+    ) {
+        return ResponseEntity.ok(
+                parkingSpotService.cancelReservation(spotId)
+        );
+    }
 
 }

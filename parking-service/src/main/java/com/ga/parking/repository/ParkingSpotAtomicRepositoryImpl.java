@@ -71,4 +71,13 @@ public class ParkingSpotAtomicRepositoryImpl
                 ParkingSpot.class
         );
     }
+
+    @Override
+    public ParkingSpot cancelReservationAtomically(String spotId) {
+        return updateStatus(
+                spotId,
+                SpotStatus.RESERVED,
+                SpotStatus.AVAILABLE
+        );
+    }
 }

@@ -10,4 +10,6 @@ public interface ParkingSpotAtomicRepository {
     ParkingSpot occupyAtomically(String spotId);
 
     ParkingSpot releaseAtomically(String spotId);
+
+    ParkingSpot cancelReservationAtomically(String spotId);
 }
