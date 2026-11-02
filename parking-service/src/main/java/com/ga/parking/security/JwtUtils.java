@@ -22,4 +22,15 @@ public class JwtUtils {
 
         return claims.getSubject();
     }
+
+    public String getRoleFromToken(String token) {
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(jwtSecret)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("role", String.class);
+    }
 }

@@ -33,6 +33,7 @@ public class JWTUtils {
     public String generateJwtToken(MyUserDetails myUserDetails){
         return Jwts.builder()
                 .setSubject((myUserDetails.getUsername()))
+                .claim("role", myUserDetails.getUser().getRole())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS256, jwtSecret)

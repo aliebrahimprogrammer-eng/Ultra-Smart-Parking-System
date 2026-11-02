@@ -46,8 +46,17 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/error"
                         ).permitAll()
+
+                        // Only admins create lots and spots
+                        .requestMatchers(HttpMethod.POST, "/lots", "/spots")
+                        .hasRole("ADMIN")
+
+                        // Only users book spots
+                        .requestMatchers(HttpMethod.PATCH, "/spots/*/reserve")
+                        .hasRole("USER")
 
                         // All other endpoints require JWT
                         .anyRequest()

@@ -44,9 +44,8 @@ public class UserService {
         if (!userRepository.existsByEmailAddress(userObject.getEmailAddress())) {
             userObject.setPassword(passwordEncoder.encode(userObject.getPassword()));
 
-            if (!"ADMIN".equals(userObject.getRole())) {
-                userObject.setRole("USER");
-            }
+            // Public registration can never create an admin
+            userObject.setRole("USER");
 
             return userRepository.save(userObject);
         } else {
