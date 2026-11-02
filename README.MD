@@ -12,7 +12,7 @@ Drivers waste time looking for parking, and two people can end up going to the s
 |-------|---|
 | Hasan | auth-service (authentication and JWT security) |
 | Ali   | parking-service (lots, spots, locking) |
-| Sara  | reservation-service (reservations, fees, concurrency demo) |
+| Sara  | reservation-service (reservations, fees) |
 | Alya  | Docker, MongoDB Atlas setup, integration testing, documentation |
 
 ## Technologies
@@ -44,7 +44,6 @@ When two users try to reserve the same spot, parking-service protects it in two 
 
 1. A `ReentrantLock` per spot id, so only one thread at a time handles that spot.
 2. An atomic MongoDB update that only succeeds if the spot is still `AVAILABLE`. If it is already taken, the API returns **409 Conflict**.
-   The `/demo/race` endpoint in reservation-service fires many parallel reservations at one spot, with and without the lock, to show the difference.
 
 ## Running the app
 
@@ -112,7 +111,6 @@ Set `MONGO_URI` and `JWT_SECRET` in your environment first.
 | reservation | `PATCH /reservations/{id}/check-in`, `/check-out`, `/cancel` | USER |
 | reservation | `GET /reservations/me` | USER |
 | reservation | `GET/POST/DELETE /vehicles` | USER |
-| reservation | `POST /demo/race?spotId=&threads=&locked=` | ADMIN |
 
 A Postman collection is in `docs/smart-parking.postman_collection.json`.
 
