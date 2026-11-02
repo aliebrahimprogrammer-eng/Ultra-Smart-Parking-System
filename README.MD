@@ -36,7 +36,7 @@ Three independent Spring Boot services, each with its own database on one Atlas 
 
 reservation-service calls parking-service to reserve and release spots. All services validate the same JWT using a shared secret.
 ## ERD Diagram
-![ERD](erd.png)
+![ERD](ERD.png)
 
 ## Concurrency
 

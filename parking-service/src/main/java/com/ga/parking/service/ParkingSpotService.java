@@ -162,4 +162,29 @@ public class ParkingSpotService {
         }
     }
 
+    //Cancel Reservation
+    public ParkingSpot cancelReservation(String spotId) {
+
+        ReentrantLock lock = spotLockManager.getLock(spotId);
+        lock.lock();
+
+
+        try {
+            ParkingSpot spot =
+                    parkingSpotRepository.cancelReservationAtomically(spotId);
+
+            if (spot == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Parking spot is not currently reserved"
+                );
+            }
+
+            return spot;
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
 }
