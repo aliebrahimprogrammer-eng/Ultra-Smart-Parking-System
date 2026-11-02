@@ -39,17 +39,21 @@ public class UserService {
         this.myUserDetails = myUserDetails;
     }
 
-    public User createUser(User userObject){
+    public User createUser(User userObject) {
         System.out.println("Service Calling createUser ==>");
-        if(!userRepository.existsByEmailAddress(userObject.getEmailAddress())){
+        if (!userRepository.existsByEmailAddress(userObject.getEmailAddress())) {
             userObject.setPassword(passwordEncoder.encode(userObject.getPassword()));
+
+            if (!"ADMIN".equals(userObject.getRole())) {
+                userObject.setRole("USER");
+            }
+
             return userRepository.save(userObject);
         } else {
             throw new InformationExistException("User with email address " + userObject.getEmailAddress() + " already" +
                     " exists.");
         }
     }
-
     public User findUserByEmailAddress(String email) {
         return userRepository.findUserByEmailAddress(email);
     }
