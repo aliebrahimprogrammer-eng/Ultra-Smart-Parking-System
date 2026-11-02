@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -16,6 +17,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "parking_spots")
+@CompoundIndex(
+        name = "unique_spot_per_lot",
+        def = "{'lotId': 1, 'spotNumber': 1}",
+        unique = true
+)
 public class ParkingSpot {
 
     @Id
