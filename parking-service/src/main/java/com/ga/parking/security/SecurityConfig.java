@@ -54,6 +54,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/lots", "/spots")
                         .hasRole("ADMIN")
 
+                        // Only admins delete lots and spots
+                        .requestMatchers(HttpMethod.DELETE, "/lots/*", "/spots/*")
+                        .hasRole("ADMIN")
+
                         // Users book through reservation-service, never directly
                         .requestMatchers(HttpMethod.PATCH, "/spots/*/reserve")
                         .hasRole("SERVICE")
