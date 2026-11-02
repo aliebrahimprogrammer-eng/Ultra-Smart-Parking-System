@@ -3,7 +3,9 @@ package com.ga.reservation_service.service;
 import com.ga.reservation_service.model.Vehicle;
 import com.ga.reservation_service.repository.VehicleRepository;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -25,7 +27,10 @@ public class VehicleService {
         try {
             return vehicleRepository.save(vehicle);
         } catch (DuplicateKeyException e) {
-            throw new RuntimeException("Vehicle plate number already exists");
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Vehicle plate number already exists"
+            );
         }
     }
 
@@ -55,7 +60,10 @@ public class VehicleService {
         try {
             return vehicleRepository.save(vehicle);
         } catch (DuplicateKeyException e) {
-            throw new RuntimeException("Vehicle plate number already exists");
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Vehicle plate number already exists"
+            );
         }
     }
 
