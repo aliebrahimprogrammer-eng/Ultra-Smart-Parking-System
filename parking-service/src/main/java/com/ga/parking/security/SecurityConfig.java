@@ -41,6 +41,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                         .permitAll()
+
+                        // Allow Swagger UI without JWT
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+
+                        // All other endpoints require JWT
                         .anyRequest()
                         .authenticated()
                 )
