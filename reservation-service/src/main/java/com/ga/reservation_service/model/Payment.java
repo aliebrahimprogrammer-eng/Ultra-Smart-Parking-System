@@ -25,5 +25,14 @@ public class Payment {
         GOOGLE_PAY
     }
     private PaymentMethod method;
+
+    public enum PaymentStatus {
+        PENDING,
+        SUCCESSFUL,
+        FAILED
+    }
+
+    private PaymentStatus status = PaymentStatus.PENDING;
+
     private LocalDateTime paidAt;
 }
