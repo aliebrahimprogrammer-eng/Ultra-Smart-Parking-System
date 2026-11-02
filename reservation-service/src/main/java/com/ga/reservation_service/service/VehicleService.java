@@ -2,6 +2,7 @@ package com.ga.reservation_service.service;
 
 import com.ga.reservation_service.model.Vehicle;
 import com.ga.reservation_service.repository.VehicleRepository;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,11 +18,15 @@ public class VehicleService {
 
     public Vehicle addVehicle(Vehicle vehicle) {
 
-        if (vehicleRepository.existsByPlateNumber(vehicle.getPlateNumber())) {
+        vehicle.setPlateNumber(
+                vehicle.getPlateNumber().trim().toUpperCase()
+        );
+
+        try {
+            return vehicleRepository.save(vehicle);
+        } catch (DuplicateKeyException e) {
             throw new RuntimeException("Vehicle plate number already exists");
         }
-
-        return vehicleRepository.save(vehicle);
     }
 
     public List<Vehicle> getAllVehicles() {
@@ -41,10 +46,17 @@ public class VehicleService {
 
         Vehicle vehicle = getVehicleById(id);
 
-        vehicle.setPlateNumber(updatedVehicle.getPlateNumber());
+        vehicle.setPlateNumber(
+                updatedVehicle.getPlateNumber().trim().toUpperCase()
+        );
+
         vehicle.setModel(updatedVehicle.getModel());
 
-        return vehicleRepository.save(vehicle);
+        try {
+            return vehicleRepository.save(vehicle);
+        } catch (DuplicateKeyException e) {
+            throw new RuntimeException("Vehicle plate number already exists");
+        }
     }
 
     public void deleteVehicle(String id) {

@@ -2,6 +2,7 @@ package com.ga.reservation_service.service;
 
 import com.ga.reservation_service.model.Payment;
 import com.ga.reservation_service.repository.PaymentRepository;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -41,7 +42,13 @@ public class PaymentService {
         payment.setMethod(method);
         payment.setStatus(Payment.PaymentStatus.PENDING);
 
-        return paymentRepository.save(payment);
+        try {
+            return paymentRepository.save(payment);
+        } catch (DuplicateKeyException e) {
+            throw new RuntimeException(
+                    "A payment already exists for this reservation"
+            );
+        }
     }
 
     public Payment confirmPayment(String paymentId) {
