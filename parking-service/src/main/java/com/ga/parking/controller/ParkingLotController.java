@@ -81,4 +81,42 @@ public class ParkingLotController {
                 parkingLotService.getLotById(lotId)
         );
     }
+
+    @PutMapping("/{lotId}")
+    @Operation(
+            summary = "Update a parking lot",
+            description = "Updates the name, location, hourly rate, and total capacity of an existing parking lot."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Parking lot updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid parking lot data"),
+            @ApiResponse(responseCode = "404", description = "Parking lot not found"),
+            @ApiResponse(responseCode = "409", description = "Another parking lot already uses this name")
+    })
+    public ResponseEntity<ParkingLot> updateLot(
+            @PathVariable String lotId,
+            @Valid @RequestBody ParkingLot parkingLot) {
+
+        return ResponseEntity.ok(
+                parkingLotService.updateLot(lotId, parkingLot)
+        );
+    }
+
+    @DeleteMapping("/{lotId}")
+    @Operation(
+            summary = "Delete a parking lot",
+            description = "Deletes a parking lot only if it contains no parking spots."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Parking lot deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Parking lot not found"),
+            @ApiResponse(responseCode = "409", description = "Cannot delete a parking lot that still contains parking spots")
+    })
+    public ResponseEntity<Void> deleteLot(
+            @PathVariable String lotId) {
+
+        parkingLotService.deleteLot(lotId);
+
+        return ResponseEntity.noContent().build();
+    }
 }

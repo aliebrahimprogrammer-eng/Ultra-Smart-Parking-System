@@ -86,11 +86,86 @@ public class ParkingSpotService {
         );
     }
 
+    // Update a parking spot without changing its status
+    public ParkingSpot updateSpot(String spotId, ParkingSpot updatedSpot) {
+
+        ReentrantLock lock = spotLockManager.getLock(spotId);
+        lock.lock();
+
+        try {
+            ParkingSpot existingSpot = parkingSpotRepository.findById(spotId)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Parking spot not found"
+                    ));
+
+            if (!parkingLotRepository.existsById(updatedSpot.getLotId())) {
+                throw new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Parking lot not found"
+                );
+            }
+
+            if (parkingSpotRepository.existsByLotIdAndSpotNumberAndIdNot(
+                    updatedSpot.getLotId(),
+                    updatedSpot.getSpotNumber(),
+                    spotId)) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "This spot number already exists in this parking lot"
+                );
+            }
+
+            // Update only administrative fields.
+            // Preserve ID, status, and version.
+            existingSpot.setLotId(updatedSpot.getLotId());
+            existingSpot.setSpotNumber(updatedSpot.getSpotNumber());
+            existingSpot.setType(updatedSpot.getType());
+
+            return parkingSpotRepository.save(existingSpot);
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // Delete a parking spot only when AVAILABLE
+    public void deleteSpot(String spotId) {
+
+        ReentrantLock lock = spotLockManager.getLock(spotId);
+        lock.lock();
+
+        try {
+            long deletedCount = parkingSpotRepository.deleteByIdAndStatus(
+                    spotId,
+                    SpotStatus.AVAILABLE
+            );
+
+            if (deletedCount == 0) {
+
+                if (!parkingSpotRepository.existsById(spotId)) {
+                    throw new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Parking spot not found"
+                    );
+                }
+
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Cannot delete a parking spot that is RESERVED or OCCUPIED"
+                );
+            }
+
+        } finally {
+            lock.unlock();
+        }
+    }
+
     // Reserve a spot using Java locking and MongoDB atomic update
     public ParkingSpot reserveSpot(String spotId) {
 
         ReentrantLock lock = spotLockManager.getLock(spotId);
-
         lock.lock();
 
         try {
@@ -111,12 +186,10 @@ public class ParkingSpotService {
         }
     }
 
-
     // Mark a reserved spot as occupied
     public ParkingSpot occupySpot(String spotId) {
 
         ReentrantLock lock = spotLockManager.getLock(spotId);
-
         lock.lock();
 
         try {
@@ -141,7 +214,6 @@ public class ParkingSpotService {
     public ParkingSpot releaseSpot(String spotId) {
 
         ReentrantLock lock = spotLockManager.getLock(spotId);
-
         lock.lock();
 
         try {
@@ -162,12 +234,11 @@ public class ParkingSpotService {
         }
     }
 
-    //Cancel Reservation
+    // Cancel a reservation
     public ParkingSpot cancelReservation(String spotId) {
 
         ReentrantLock lock = spotLockManager.getLock(spotId);
         lock.lock();
-
 
         try {
             ParkingSpot spot =
@@ -186,5 +257,4 @@ public class ParkingSpotService {
             lock.unlock();
         }
     }
-
 }
