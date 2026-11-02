@@ -17,12 +17,13 @@ public class Payment {
     private String reservationId;
     private String userId;
     private double amount;
-    public enum PaymentStatus {
-        PENDING,
-        PAID,
-        FAILED,
-        REFUNDED
+    public enum PaymentMethod {
+        CREDIT_CARD,
+        DEBIT_CARD,
+        CASH,
+        APPLE_PAY,
+        GOOGLE_PAY
     }
-    private PaymentStatus status;
-    private LocalDateTime paymentDate;
+    private PaymentMethod method;
+    private LocalDateTime paidAt;
 }
