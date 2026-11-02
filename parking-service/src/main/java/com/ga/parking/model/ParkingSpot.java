@@ -2,6 +2,9 @@ package com.ga.parking.model;
 
 import com.ga.parking.model.enums.SpotStatus;
 import com.ga.parking.model.enums.SpotType;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,10 +30,13 @@ public class ParkingSpot {
     @Id
     private String id;
 
+    @NotBlank(message = "Parking lot ID is required")
     private String lotId;
 
+    @NotBlank(message = "Spot number is required")
     private String spotNumber;
 
+    @NotNull(message = "Spot type is required")
     private SpotType type;
 
     private SpotStatus status;
