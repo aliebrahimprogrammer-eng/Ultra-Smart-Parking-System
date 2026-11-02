@@ -22,14 +22,43 @@ public class ParkingSpotAtomicRepositoryImpl
 
     @Override
     public ParkingSpot reserveAtomically(String spotId) {
+        return updateStatus(
+                spotId,
+                SpotStatus.AVAILABLE,
+                SpotStatus.RESERVED
+        );
+    }
+
+    @Override
+    public ParkingSpot occupyAtomically(String spotId) {
+        return updateStatus(
+                spotId,
+                SpotStatus.RESERVED,
+                SpotStatus.OCCUPIED
+        );
+    }
+
+    @Override
+    public ParkingSpot releaseAtomically(String spotId) {
+        return updateStatus(
+                spotId,
+                SpotStatus.OCCUPIED,
+                SpotStatus.AVAILABLE
+        );
+    }
+
+    private ParkingSpot updateStatus(
+            String spotId,
+            SpotStatus currentStatus,
+            SpotStatus newStatus) {
 
         Query query = new Query(
                 Criteria.where("_id").is(spotId)
-                        .and("status").is(SpotStatus.AVAILABLE)
+                        .and("status").is(currentStatus)
         );
 
         Update update = new Update()
-                .set("status", SpotStatus.RESERVED)
+                .set("status", newStatus)
                 .inc("version", 1);
 
         FindAndModifyOptions options = FindAndModifyOptions.options()
