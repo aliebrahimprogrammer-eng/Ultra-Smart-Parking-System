@@ -3,6 +3,7 @@ package com.ga.parking.controller;
 import com.ga.parking.model.User;
 import com.ga.parking.model.request.LoginRequest;
 import com.ga.parking.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +18,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public User createUser(@RequestBody User userObject){
+    public User createUser(@Valid @RequestBody User userObject){
         System.out.println("Calling createUser ==> ");
         return userService.createUser(userObject);
     }

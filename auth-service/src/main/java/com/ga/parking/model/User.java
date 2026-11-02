@@ -2,6 +2,8 @@ package com.ga.parking.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -18,14 +20,18 @@ public class User {
     @Id
     private String id;
 
+    @NotBlank
     @Indexed(unique = true)
     private String username;
 
+    @NotBlank
+    @Email
     @Indexed(unique = true)
     private String emailAddress;
 
     private String role;
 
+    @NotBlank
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
