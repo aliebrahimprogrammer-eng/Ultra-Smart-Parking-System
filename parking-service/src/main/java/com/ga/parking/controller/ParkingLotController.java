@@ -7,6 +7,7 @@ import com.ga.parking.service.ParkingLotService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class ParkingLotController {
 
     @PostMapping
     public ResponseEntity<ParkingLot> createLot(
-            @RequestBody ParkingLot parkingLot) {
+            @Valid @RequestBody ParkingLot parkingLot) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(parkingLotService.createLot(parkingLot));

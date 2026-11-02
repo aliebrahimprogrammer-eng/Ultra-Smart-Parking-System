@@ -7,6 +7,7 @@ import com.ga.parking.service.ParkingSpotService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class ParkingSpotController {
     // Create a parking spot
     @PostMapping
     public ResponseEntity<ParkingSpot> createSpot(
-            @RequestBody ParkingSpot parkingSpot) {
+            @Valid @RequestBody ParkingSpot parkingSpot) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(parkingSpotService.createSpot(parkingSpot));
