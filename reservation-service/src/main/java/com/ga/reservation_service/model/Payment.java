@@ -34,7 +34,8 @@ public class Payment {
     public enum PaymentStatus {
         PENDING,
         SUCCESSFUL,
-        FAILED
+        FAILED,
+        REFUND_REQUIRED
     }
 
     private PaymentStatus status = PaymentStatus.PENDING;
