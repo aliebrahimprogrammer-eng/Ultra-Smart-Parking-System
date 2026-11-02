@@ -10,21 +10,30 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+
 @Service
 public class ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
+    private final MongoTemplate mongoTemplate;
 
     public ReservationService(
             ReservationRepository reservationRepository,
             PaymentRepository paymentRepository,
-            PaymentService paymentService) {
+            PaymentService paymentService,
+            MongoTemplate mongoTemplate) {
 
         this.reservationRepository = reservationRepository;
         this.paymentRepository = paymentRepository;
         this.paymentService = paymentService;
+        this.mongoTemplate = mongoTemplate;
     }
 
     public Reservation createReservation(
@@ -62,28 +71,37 @@ public class ReservationService {
 
     public Reservation confirmReservationPayment(String reservationId) {
 
-        Reservation reservation = getReservationById(reservationId);
-
-        if (reservation.getStatus() != Reservation.ReservationStatus.PENDING) {
-            throw new RuntimeException("Reservation is not pending");
-        }
-
-        if (reservation.getExpiresAt().isBefore(LocalDateTime.now())) {
-            reservation.setStatus(Reservation.ReservationStatus.EXPIRED);
-            reservationRepository.save(reservation);
-
-            throw new RuntimeException("Reservation has expired");
-        }
-
         Payment payment = paymentService.getPaymentByReservation(reservationId);
 
         if (payment.getStatus() != Payment.PaymentStatus.SUCCESSFUL) {
             throw new RuntimeException("Payment has not been confirmed");
         }
 
-        reservation.setStatus(Reservation.ReservationStatus.CONFIRMED);
+        LocalDateTime now = LocalDateTime.now();
 
-        return reservationRepository.save(reservation);
+        Query query = new Query(
+                Criteria.where("id").is(reservationId)
+                        .and("status").is(Reservation.ReservationStatus.PENDING)
+                        .and("expiresAt").gt(now)
+        );
+
+        Update update = new Update()
+                .set("status", Reservation.ReservationStatus.CONFIRMED);
+
+        Reservation confirmedReservation = mongoTemplate.findAndModify(
+                query,
+                update,
+                FindAndModifyOptions.options().returnNew(true),
+                Reservation.class
+        );
+
+        if (confirmedReservation == null) {
+            throw new RuntimeException(
+                    "Reservation cannot be confirmed. It may have expired or already been processed."
+            );
+        }
+
+        return confirmedReservation;
     }
 
     public Reservation getReservationById(String id) {
@@ -102,36 +120,46 @@ public class ReservationService {
 
     public Reservation cancelReservation(String id) {
 
-        Reservation reservation = getReservationById(id);
+        Query query = new Query(
+                Criteria.where("id").is(id)
+                        .and("status").in(
+                                Reservation.ReservationStatus.PENDING,
+                                Reservation.ReservationStatus.CONFIRMED
+                        )
+        );
 
-        if (reservation.getStatus() == Reservation.ReservationStatus.ACTIVE
-                || reservation.getStatus() == Reservation.ReservationStatus.COMPLETED) {
-            throw new RuntimeException("This reservation cannot be cancelled");
+        Update update = new Update()
+                .set("status", Reservation.ReservationStatus.CANCELLED);
+
+        Reservation cancelledReservation = mongoTemplate.findAndModify(
+                query,
+                update,
+                FindAndModifyOptions.options().returnNew(true),
+                Reservation.class
+        );
+
+        if (cancelledReservation == null) {
+            throw new RuntimeException(
+                    "Reservation cannot be cancelled. It may already be active, completed, expired or cancelled."
+            );
         }
 
-        reservation.setStatus(Reservation.ReservationStatus.CANCELLED);
-
-        return reservationRepository.save(reservation);
+        return cancelledReservation;
     }
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 30000)
     public void expirePendingReservations() {
-
-        List<Reservation> pendingReservations =
-                reservationRepository.findByStatus(
-                        Reservation.ReservationStatus.PENDING
-                );
 
         LocalDateTime now = LocalDateTime.now();
 
-        for (Reservation reservation : pendingReservations) {
+        Query query = new Query(
+                Criteria.where("status").is(Reservation.ReservationStatus.PENDING)
+                        .and("expiresAt").lte(now)
+        );
 
-            if (reservation.getExpiresAt() != null
-                    && reservation.getExpiresAt().isBefore(now)) {
+        Update update = new Update()
+                .set("status", Reservation.ReservationStatus.EXPIRED);
 
-                reservation.setStatus(Reservation.ReservationStatus.EXPIRED);
-                reservationRepository.save(reservation);
-            }
-        }
+        mongoTemplate.updateMulti(query, update, Reservation.class);
     }
 }
